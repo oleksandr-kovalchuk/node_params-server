@@ -5,21 +5,27 @@ const http = require('http');
 
 function createServer() {
   return http.createServer((req, res) => {
-    const reqUrl = new URL(req.url, `http://${req.headers.host}`);
-    const parts = reqUrl.pathname.split('/').filter(Boolean);
+    const host = req.headers.host;
+    const fullUrl = `http://${host}${req.url}`;
+    const url = new URL(fullUrl);
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const pathname = url.pathname;
+    const pathSegments = pathname
+      .split('/')
+      .filter((segment) => segment !== '');
 
-    const queryParams = Object.fromEntries(reqUrl.searchParams);
+    const searchParams = url.searchParams;
+    const queryParams = Object.fromEntries(searchParams);
 
     const responseData = {
-      parts,
+      parts: pathSegments,
       query: queryParams,
     };
 
-    const responseJson = JSON.stringify(responseData);
+    const json = JSON.stringify(responseData);
 
-    res.end(responseJson);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(json);
   });
 }
 
